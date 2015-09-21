@@ -13,7 +13,15 @@ type TestController struct {
 
 func (this *TestController) Index() {
 	funcs := []string{
-		"test", "list", "condition", "insert?nickname=Test" + strconv.Itoa(rand.Intn(100)),
+		"test",
+		"list",
+		"condition",
+		"insert?nickname=Test" + strconv.Itoa(rand.Intn(100)),
+		"cookie",
+		"jsonp?callback=test",
+		"xml",
+		"stoptimetask",
+		"restarttimetask",
 	}
 	html := ""
 	for _, v := range funcs {
@@ -66,4 +74,49 @@ func (this *TestController) Insert() {
 		this.Data["json"] = "insert success,id:" + strconv.Itoa(int(id))
 	}
 	this.ServeJson()
+}
+
+func (this *TestController) Cookie() {
+	test1 := this.Context.GetCookie("test2")
+	if test1 != "" {
+		this.Data["json"] = map[string]string{
+			"Result": "find cookie",
+			"Cookie": test1,
+		}
+	} else {
+		this.Context.SetCookie("test2", "ooooooook", 200)
+		this.Data["json"] = map[string]string{
+			"Result": "not found,set it",
+		}
+	}
+	this.ServeJson()
+}
+
+func (this *TestController) Jsonp() {
+	this.ServeJsonp(map[string]string{
+		"nickname": "jsonp",
+		"age":      "27",
+	})
+}
+
+func (this *TestController) Xml() {
+	this.ServeXml("testxml")
+}
+
+func (this *TestController) StopTimeTask() {
+	err := slimgo.ShutDownTimeTask("showtime")
+	if err != nil {
+		this.ServeJson(err.Error())
+	} else {
+		this.ServeJson("shut down success")
+	}
+}
+
+func (this *TestController) RestartTimeTask() {
+	err := slimgo.RestartTimeTask("showtime")
+	if err != nil {
+		this.ServeJson(err.Error())
+	} else {
+		this.ServeJson("restart success")
+	}
 }

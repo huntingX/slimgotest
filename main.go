@@ -4,7 +4,9 @@ import (
 	"github.com/jesusslim/slimgo"
 	"slimgotest/controller"
 	"slimgotest/controller/Admin"
+	_ "slimgotest/hook"
 	_ "slimgotest/model"
+	_ "slimgotest/task"
 )
 
 func main() {
