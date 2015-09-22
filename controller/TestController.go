@@ -16,7 +16,9 @@ func (this *TestController) Index() {
 		"test",
 		"list",
 		"condition",
+		"join",
 		"insert?nickname=Test" + strconv.Itoa(rand.Intn(100)),
+		"trans",
 		"cookie",
 		"jsonp?callback=test",
 		"xml",
@@ -36,7 +38,7 @@ func (this *TestController) Test() {
 }
 
 func (this *TestController) List() {
-	sm := new(slimmysql.Sql)
+	sm, _ := slimmysql.NewSqlInstanceDefault()
 	stds, err := sm.Table("students").Select()
 	if err != nil {
 		this.Data["json"] = err.Error()
@@ -47,7 +49,7 @@ func (this *TestController) List() {
 }
 
 func (this *TestController) Condition() {
-	sm := new(slimmysql.Sql)
+	sm, _ := slimmysql.NewSqlInstanceDefault()
 	condition := map[string]interface{}{
 		"nickname__like": "sl",
 	}
@@ -62,8 +64,29 @@ func (this *TestController) Condition() {
 	this.ServeJson()
 }
 
+func (this *TestController) Join() {
+	sm, _ := slimmysql.NewSqlInstanceDefault()
+	condition := sm.NewCondition()
+	condition["relation"] = "OR"
+	condition["age__egt"] = 20
+	condition["_"] = map[string]interface{}{
+		"gender":         1,
+		"nickname__like": "sl",
+	}
+	r, _ := sm.MustMaster(true).Table("students").Where(condition).Order("age desc").Select()
+	sql1 := sm.GetSql(true)
+	r2, _ := sm.Clear().MustMaster(true).Table("students").Join("INNER JOIN go_order as o on o.sid=go_students.id").Group("sid").GetField("sid,sum(price) as total,count(o.id) as count")
+	sql2 := sm.GetSql(true)
+	this.ServeJson(map[string]interface{}{
+		"result1": r,
+		"sql1":    sql1,
+		"result2": r2,
+		"sql2":    sql2,
+	})
+}
+
 func (this *TestController) Insert() {
-	sm := new(slimmysql.Sql)
+	sm, _ := slimmysql.NewSqlInstanceDefault()
 	nickname := this.Context.Request.FormValue("nickname")
 	id, err := sm.Table("students").Add(map[string]interface{}{
 		"nickname": nickname,
@@ -74,6 +97,21 @@ func (this *TestController) Insert() {
 		this.Data["json"] = "insert success,id:" + strconv.Itoa(int(id))
 	}
 	this.ServeJson()
+}
+
+func (this *TestController) Trans() {
+	sm, _ := slimmysql.NewSqlInstanceDefault()
+	sm.StartTrans()
+	p1, _ := sm.Table("students").Find(2)
+	sm.Table("students").Where("id = 2").Save(map[string]interface{}{"nickname": "BigDaddy"})
+	p2, _ := sm.Table("students").Find(2)
+	sm.Rollback()
+	p3, _ := sm.Table("students").Find(3)
+	this.ServeJson(map[string]interface{}{
+		"p1": p1,
+		"p2": p2,
+		"p3": p3,
+	})
 }
 
 func (this *TestController) Cookie() {

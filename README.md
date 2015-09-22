@@ -1,2 +1,2 @@
 # slimgotest
-The example of slimgo.
+The example of slimgo & slimmysql.
