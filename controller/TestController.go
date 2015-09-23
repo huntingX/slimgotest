@@ -15,6 +15,7 @@ func (this *TestController) Index() {
 	funcs := []string{
 		"test",
 		"list",
+		"list2",
 		"condition",
 		"join",
 		"insert?nickname=Test" + strconv.Itoa(rand.Intn(100)),
@@ -24,6 +25,8 @@ func (this *TestController) Index() {
 		"xml",
 		"stoptimetask",
 		"restarttimetask",
+		"session1",
+		"session2",
 	}
 	html := ""
 	for _, v := range funcs {
@@ -39,6 +42,17 @@ func (this *TestController) Test() {
 
 func (this *TestController) List() {
 	sm, _ := slimmysql.NewSqlInstanceDefault()
+	stds, err := sm.Table("students").Select()
+	if err != nil {
+		this.Data["json"] = err.Error()
+	} else {
+		this.Data["json"] = stds
+	}
+	this.ServeJson()
+}
+
+func (this *TestController) List2() {
+	sm, _ := slimmysql.NewSqlInstance("biteabc")
 	stds, err := sm.Table("students").Select()
 	if err != nil {
 		this.Data["json"] = err.Error()
@@ -157,4 +171,36 @@ func (this *TestController) RestartTimeTask() {
 	} else {
 		this.ServeJson("restart success")
 	}
+}
+
+func (this *TestController) Session1() {
+	session := this.Context.Input.Session
+	user := session.Get("user")
+	if user == nil {
+		session.Set("user", map[string]interface{}{
+			"nickname": "Slim",
+			"age":      18,
+		})
+		this.Data["json"] = "no session,set it"
+	} else {
+		this.Data["json"] = user
+	}
+	this.ServeJson()
+}
+
+func (this *TestController) Session2() {
+	session := this.Context.Input.Session
+	user := session.Get("user")
+	if user == nil {
+		session.Set("user", map[string]interface{}{
+			"nickname": "Slim",
+			"age":      18,
+		})
+		this.Data["json"] = "no session,set it"
+	} else {
+		user.(map[string]interface{})["nickname"] = 1234
+		session.Set("user", user)
+		this.Data["json"] = user
+	}
+	this.ServeJson()
 }
