@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	slimgo.RegisterTimeTask("showtime", showTime, 5, true)
+	slimgo.RegisterTimeTask("showtime", showTime, 5, false)
 }
 
 func showTime() error {

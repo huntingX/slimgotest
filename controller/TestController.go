@@ -27,6 +27,8 @@ func (this *TestController) Index() {
 		"restarttimetask",
 		"session1",
 		"session2",
+		"index2",
+		"index3",
 	}
 	html := ""
 	for _, v := range funcs {
@@ -203,4 +205,21 @@ func (this *TestController) Session2() {
 		this.Data["json"] = user
 	}
 	this.ServeJson()
+}
+
+func (this *TestController) Index2() {
+	this.Data["Test"] = "Test"
+	this.Data["Std"] = map[string]interface{}{
+		"nickname": "slim",
+		"age":      18,
+	}
+}
+
+func (this *TestController) Index3() {
+	this.Data["Test"] = "Test in index3"
+	this.Data["Std"] = map[string]interface{}{
+		"nickname": "Lawliet",
+		"age":      20,
+	}
+	this.SetView("test/index2.html")
 }
